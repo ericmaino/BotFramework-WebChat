@@ -7,7 +7,7 @@ import sanitizeHTML from 'sanitize-html';
 
 const SANITIZE_HTML_OPTIONS = {
   allowedAttributes: {
-    a: ['aria-label', 'href', 'name', 'target', 'title'],
+    a: ['aria-label', 'href', 'name', 'target', 'title', 'role'],
     img: ['alt', 'src']
   },
   allowedSchemes: ['data', 'http', 'https', 'ftp', 'mailto', 'sip', 'tel'],
@@ -48,6 +48,14 @@ const SANITIZE_HTML_OPTIONS = {
   ]
 };
 
+function addAttributeIfNotExist(token, attributeName, attributeValue) {
+  const found = token.attrs.find(value => value[0] === attributeName);
+
+  if (!found) {
+    token.attrs.push([attributeName, attributeValue]);
+  }
+}
+
 const customMarkdownIt = new MarkdownIt({
   breaks: false,
   html: false,
@@ -74,6 +82,10 @@ const customMarkdownIt = new MarkdownIt({
     } else {
       tokens[index].attrPush(['rel', 'noopener noreferrer']);
     }
+  })
+  .use(iterator, 'accessibility-attributes', 'link_open', (tokens, index) => {
+    const token = tokens[index];
+    addAttributeIfNotExist(token, 'role', 'link');
   });
 
 export default function render(markdown, { markdownRespectCRLF }) {
